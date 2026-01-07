@@ -6,19 +6,18 @@ class StreamlitApp:
     """Main application entrypoint."""
 
     def __init__(self) -> None:
-        """Initialize the app with config and layout."""
+        """Initialize the app."""
         self._config = AppConfig()
         self._layout = AppLayout(self._config)
 
     def run(self) -> None:
         """Run the Streamlit application."""
         self._layout.configure_page()
-        self._layout.render_header()
-        self._layout.render_placeholder()
+        self._layout.render()
 
 
 def main() -> None:
-    """CLI-friendly entrypoint for Streamlit execution."""
+    """Streamlit execution entrypoint."""
     StreamlitApp().run()
 
 
