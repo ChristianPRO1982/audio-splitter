@@ -55,10 +55,6 @@ class SelectionState {
     return Number.isFinite(this.startS) && Number.isFinite(this.endS);
   }
 
-  hasStartOnly() {
-    return Number.isFinite(this.startS) && !Number.isFinite(this.endS);
-  }
-
   reset() {
     this.startS = null;
     this.endS = null;
@@ -66,16 +62,16 @@ class SelectionState {
 
   setStart(timeS) {
     this.startS = timeS;
-    if (Number.isFinite(this.endS)) {
-      this._normalize();
-    }
+    this._normalize();
   }
 
   setEnd(timeS) {
     this.endS = timeS;
-    if (Number.isFinite(this.startS)) {
-      this._normalize();
-    }
+    this._normalize();
+  }
+
+  clearEnd() {
+    this.endS = null;
   }
 
   _normalize() {
@@ -102,9 +98,13 @@ class CutterApp {
     this.projectInfo = document.getElementById("projectInfo");
 
     this.playBtn = document.getElementById("playBtn");
+    this.resetSelectionBtn = document.getElementById("resetSelectionBtn");
+    this.undoCutBtn = document.getElementById("undoCutBtn");
     this.addCutBtn = document.getElementById("addCutBtn");
+
     this.selectionInfo = document.getElementById("selectionInfo");
     this.timeInfo = document.getElementById("timeInfo");
+
     this.markerStart = document.getElementById("markerStart");
     this.markerEnd = document.getElementById("markerEnd");
 
@@ -121,12 +121,16 @@ class CutterApp {
   _bind() {
     this.uploadBtn.addEventListener("click", () => this._onUpload());
     this.playBtn.addEventListener("click", () => this._togglePlay());
+    this.resetSelectionBtn.addEventListener("click", () => this._resetSelection());
+    this.undoCutBtn.addEventListener("click", () => this._undoLastCut());
     this.addCutBtn.addEventListener("click", () => this._addCut());
     this.exportBtn.addEventListener("click", () => this._export());
   }
 
   _setUiDisabled(disabled) {
     this.playBtn.disabled = disabled;
+    this.resetSelectionBtn.disabled = true;
+    this.undoCutBtn.disabled = true;
     this.addCutBtn.disabled = true;
     this.exportBtn.disabled = disabled;
   }
@@ -145,11 +149,14 @@ class CutterApp {
 
   async _loadAudio() {
     this._setUiDisabled(true);
+
     this.selection.reset();
-    this.markerStart.classList.add("hidden");
-    this.markerEnd.classList.add("hidden");
     this.cuts = [];
     this._renderCuts();
+
+    this.markerStart.classList.add("hidden");
+    this.markerEnd.classList.add("hidden");
+
     this._refreshSelectionUi();
 
     if (this.wave) {
@@ -175,8 +182,42 @@ class CutterApp {
     this.wave.on("ready", () => {
       this._setUiDisabled(false);
       this._updateOverlay(this.wave.getDuration());
-      this._log("Audio loaded. Click on waveform to set selection, then Add cut.");
+      this._log("Audio loaded. Click waveform to set selection, then Add cut.");
     });
+  }
+
+  _togglePlay() {
+    if (!this.wave) return;
+    this.wave.playPause();
+  }
+
+  _handleWaveClick() {
+    if (!this.wave) return;
+
+    const t = this.wave.getCurrentTime();
+    const duration = this.wave.getDuration();
+
+    if (!Number.isFinite(this.selection.startS)) {
+      this.selection.setStart(t);
+      this.selection.clearEnd();
+      this._syncSelectionUi(duration);
+      return;
+    }
+
+    if (!Number.isFinite(this.selection.endS)) {
+      this.selection.setEnd(t);
+      this._syncSelectionUi(duration);
+      return;
+    }
+
+    const boundary = this._pickBoundaryToMove(t);
+    if (boundary === "start") {
+      this.selection.setStart(t);
+    } else {
+      this.selection.setEnd(t);
+    }
+
+    this._syncSelectionUi(duration);
   }
 
   _pickBoundaryToMove(timeS) {
@@ -190,11 +231,35 @@ class CutterApp {
     if (span <= 0) return "end";
 
     const rel = (timeS - start) / span;
-
-    if (rel <= 1 / 3) {
-      return "start";
-    }
+    if (rel <= 1 / 3) return "start";
     return "end";
+  }
+
+  _selectionDuration() {
+    if (!this.selection.isComplete()) return 0;
+    return Math.max(0, this.selection.endS - this.selection.startS);
+  }
+
+  _syncSelectionUi(duration) {
+    this._refreshSelectionUi();
+    this._updateOverlay(duration);
+
+    const hasStart = Number.isFinite(this.selection.startS);
+    this.resetSelectionBtn.disabled = !hasStart;
+
+    const canAdd = this.selection.isComplete() && this._selectionDuration() >= 0.2;
+    this.addCutBtn.disabled = !canAdd;
+  }
+
+  _refreshSelectionUi() {
+    const start = Number.isFinite(this.selection.startS)
+      ? TimeUtils.toClock(this.selection.startS)
+      : "--:--";
+    const end = Number.isFinite(this.selection.endS)
+      ? TimeUtils.toClock(this.selection.endS)
+      : "--:--";
+
+    this.selectionInfo.textContent = `Selection: ${start} → ${end}`;
   }
 
   _updateOverlay(duration) {
@@ -214,61 +279,15 @@ class CutterApp {
     setMarker(this.markerEnd, this.selection.endS);
   }
 
-  _handleWaveClick() {
+  _resetSelection() {
     if (!this.wave) return;
 
-    const t = this.wave.getCurrentTime();
-    const duration = this.wave.getDuration();
-
-    if (!Number.isFinite(this.selection.startS)) {
-      this.selection.setStart(t);
-      this.selection.setEnd(null);
-      this._refreshSelectionUi();
-      this._updateOverlay(duration);
-      this.addCutBtn.disabled = true;
-      return;
-    }
-
-    if (!Number.isFinite(this.selection.endS)) {
-      this.selection.setEnd(t);
-      this._refreshSelectionUi();
-      this._updateOverlay(duration);
-      this.addCutBtn.disabled = !(this._selectionDuration() >= 0.2);
-      return;
-    }
-
-    const boundary = this._pickBoundaryToMove(t);
-    if (boundary === "start") {
-      this.selection.setStart(t);
-    } else {
-      this.selection.setEnd(t);
-    }
+    this.selection.reset();
+    this.addCutBtn.disabled = true;
+    this.resetSelectionBtn.disabled = true;
 
     this._refreshSelectionUi();
-    this._updateOverlay(duration);
-    this.addCutBtn.disabled = !(this._selectionDuration() >= 0.2);
-  }
-
-
-  _selectionDuration() {
-    if (!this.selection.isComplete()) return 0;
-    return Math.max(0, this.selection.endS - this.selection.startS);
-  }
-
-  _refreshSelectionUi() {
-    const start = Number.isFinite(this.selection.startS)
-      ? TimeUtils.toClock(this.selection.startS)
-      : "--:--";
-    const end = Number.isFinite(this.selection.endS)
-      ? TimeUtils.toClock(this.selection.endS)
-      : "--:--";
-
-    this.selectionInfo.textContent = `Selection: ${start} → ${end}`;
-  }
-
-  _togglePlay() {
-    if (!this.wave) return;
-    this.wave.playPause();
+    this._updateOverlay(this.wave.getDuration());
   }
 
   _addCut() {
@@ -288,14 +307,31 @@ class CutterApp {
     });
 
     this.selection.setStart(endS);
-    this.selection.setEnd(null);
+    this.selection.clearEnd();
 
     const duration = this.wave ? this.wave.getDuration() : 0;
     this._refreshSelectionUi();
     this._updateOverlay(duration);
 
     this.addCutBtn.disabled = true;
+    this.resetSelectionBtn.disabled = false;
+    this.undoCutBtn.disabled = this.cuts.length === 0;
+
     this._renderCuts();
+  }
+
+  _undoLastCut() {
+    if (this.cuts.length === 0) return;
+    this.cuts.pop();
+    this._renderCuts();
+    this.undoCutBtn.disabled = this.cuts.length === 0;
+  }
+
+  _deleteCut(index) {
+    if (index < 0 || index >= this.cuts.length) return;
+    this.cuts.splice(index, 1);
+    this._renderCuts();
+    this.undoCutBtn.disabled = this.cuts.length === 0;
   }
 
   _renderCuts() {
@@ -315,16 +351,28 @@ class CutterApp {
         this.cuts[idx].filename = e.target.value;
       });
 
+      const actions = document.createElement("div");
+      actions.className = "row";
+
       const jumpBtn = document.createElement("button");
       jumpBtn.textContent = "Jump";
       jumpBtn.addEventListener("click", () => {
         if (!this.wave) return;
-        this.wave.setTime(cut.start_s);
+        this.wave.setTime(cut.end_s);
       });
+
+      const delBtn = document.createElement("button");
+      delBtn.textContent = "Delete";
+      delBtn.className = "danger";
+      delBtn.addEventListener("click", () => this._deleteCut(idx));
+
+      actions.appendChild(jumpBtn);
+      actions.appendChild(delBtn);
 
       div.appendChild(label);
       div.appendChild(input);
-      div.appendChild(jumpBtn);
+      div.appendChild(actions);
+
       this.segmentsDiv.appendChild(div);
     });
   }
