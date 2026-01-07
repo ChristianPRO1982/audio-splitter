@@ -45,20 +45,68 @@ class TimeUtils {
   }
 }
 
+class SelectionState {
+  constructor() {
+    this.startS = null;
+    this.endS = null;
+  }
+
+  isComplete() {
+    return Number.isFinite(this.startS) && Number.isFinite(this.endS);
+  }
+
+  hasStartOnly() {
+    return Number.isFinite(this.startS) && !Number.isFinite(this.endS);
+  }
+
+  reset() {
+    this.startS = null;
+    this.endS = null;
+  }
+
+  setStart(timeS) {
+    this.startS = timeS;
+    if (Number.isFinite(this.endS)) {
+      this._normalize();
+    }
+  }
+
+  setEnd(timeS) {
+    this.endS = timeS;
+    if (Number.isFinite(this.startS)) {
+      this._normalize();
+    }
+  }
+
+  _normalize() {
+    if (!this.isComplete()) return;
+    if (this.endS < this.startS) {
+      const tmp = this.startS;
+      this.startS = this.endS;
+      this.endS = tmp;
+    }
+  }
+}
+
 class CutterApp {
   constructor() {
     this.api = new ApiClient();
     this.projectId = null;
-    this.markers = [];
+
     this.wave = null;
+    this.selection = new SelectionState();
+    this.cuts = [];
 
     this.fileInput = document.getElementById("fileInput");
     this.uploadBtn = document.getElementById("uploadBtn");
     this.projectInfo = document.getElementById("projectInfo");
 
     this.playBtn = document.getElementById("playBtn");
-    this.addMarkerBtn = document.getElementById("addMarkerBtn");
+    this.addCutBtn = document.getElementById("addCutBtn");
+    this.selectionInfo = document.getElementById("selectionInfo");
     this.timeInfo = document.getElementById("timeInfo");
+    this.markerStart = document.getElementById("markerStart");
+    this.markerEnd = document.getElementById("markerEnd");
 
     this.segmentsDiv = document.getElementById("segments");
     this.exportBtn = document.getElementById("exportBtn");
@@ -67,18 +115,19 @@ class CutterApp {
 
     this._bind();
     this._setUiDisabled(true);
+    this._refreshSelectionUi();
   }
 
   _bind() {
     this.uploadBtn.addEventListener("click", () => this._onUpload());
     this.playBtn.addEventListener("click", () => this._togglePlay());
-    this.addMarkerBtn.addEventListener("click", () => this._addMarker());
+    this.addCutBtn.addEventListener("click", () => this._addCut());
     this.exportBtn.addEventListener("click", () => this._export());
   }
 
   _setUiDisabled(disabled) {
     this.playBtn.disabled = disabled;
-    this.addMarkerBtn.disabled = disabled;
+    this.addCutBtn.disabled = true;
     this.exportBtn.disabled = disabled;
   }
 
@@ -96,8 +145,12 @@ class CutterApp {
 
   async _loadAudio() {
     this._setUiDisabled(true);
-    this.markers = [];
-    this._renderSegments();
+    this.selection.reset();
+    this.markerStart.classList.add("hidden");
+    this.markerEnd.classList.add("hidden");
+    this.cuts = [];
+    this._renderCuts();
+    this._refreshSelectionUi();
 
     if (this.wave) {
       this.wave.destroy();
@@ -115,10 +168,102 @@ class CutterApp {
       this.timeInfo.textContent = TimeUtils.toClock(t);
     });
 
+    this.wave.on("interaction", () => {
+      this._handleWaveClick();
+    });
+
     this.wave.on("ready", () => {
       this._setUiDisabled(false);
-      this._log("Audio loaded. Add markers, then export.");
+      this._updateOverlay(this.wave.getDuration());
+      this._log("Audio loaded. Click on waveform to set selection, then Add cut.");
     });
+  }
+
+  _pickBoundaryToMove(timeS) {
+    const start = this.selection.startS;
+    const end = this.selection.endS;
+
+    if (timeS <= start) return "start";
+    if (timeS >= end) return "end";
+
+    const span = end - start;
+    if (span <= 0) return "end";
+
+    const rel = (timeS - start) / span;
+
+    if (rel <= 1 / 3) {
+      return "start";
+    }
+    return "end";
+  }
+
+  _updateOverlay(duration) {
+    if (!Number.isFinite(duration) || duration <= 0) return;
+
+    const setMarker = (el, timeS) => {
+      if (!Number.isFinite(timeS)) {
+        el.classList.add("hidden");
+        return;
+      }
+      const pct = Math.min(1, Math.max(0, timeS / duration)) * 100;
+      el.style.left = `calc(${pct}% - 1px)`;
+      el.classList.remove("hidden");
+    };
+
+    setMarker(this.markerStart, this.selection.startS);
+    setMarker(this.markerEnd, this.selection.endS);
+  }
+
+  _handleWaveClick() {
+    if (!this.wave) return;
+
+    const t = this.wave.getCurrentTime();
+    const duration = this.wave.getDuration();
+
+    if (!Number.isFinite(this.selection.startS)) {
+      this.selection.setStart(t);
+      this.selection.setEnd(null);
+      this._refreshSelectionUi();
+      this._updateOverlay(duration);
+      this.addCutBtn.disabled = true;
+      return;
+    }
+
+    if (!Number.isFinite(this.selection.endS)) {
+      this.selection.setEnd(t);
+      this._refreshSelectionUi();
+      this._updateOverlay(duration);
+      this.addCutBtn.disabled = !(this._selectionDuration() >= 0.2);
+      return;
+    }
+
+    const boundary = this._pickBoundaryToMove(t);
+    if (boundary === "start") {
+      this.selection.setStart(t);
+    } else {
+      this.selection.setEnd(t);
+    }
+
+    this._refreshSelectionUi();
+    this._updateOverlay(duration);
+    this.addCutBtn.disabled = !(this._selectionDuration() >= 0.2);
+  }
+
+
+  _selectionDuration() {
+    if (!this.selection.isComplete()) return 0;
+    return Math.max(0, this.selection.endS - this.selection.startS);
+  }
+
+  _refreshSelectionUi() {
+    const start = Number.isFinite(this.selection.startS)
+      ? TimeUtils.toClock(this.selection.startS)
+      : "--:--";
+    const end = Number.isFinite(this.selection.endS)
+      ? TimeUtils.toClock(this.selection.endS)
+      : "--:--";
+
+    this.selectionInfo.textContent = `Selection: ${start} → ${end}`;
   }
 
   _togglePlay() {
@@ -126,58 +271,55 @@ class CutterApp {
     this.wave.playPause();
   }
 
-  _addMarker() {
-    if (!this.wave) return;
+  _addCut() {
+    if (!this.selection.isComplete()) return;
+    if (this._selectionDuration() < 0.2) return;
 
-    const t = this.wave.getCurrentTime();
-    this.markers.push(t);
-    this.markers.sort((a, b) => a - b);
-    this._renderSegments();
+    const index = this.cuts.length + 1;
+    const filename = `cut_${String(index).padStart(2, "0")}.mp3`;
+
+    const startS = this.selection.startS;
+    const endS = this.selection.endS;
+
+    this.cuts.push({
+      start_s: startS,
+      end_s: endS,
+      filename: filename,
+    });
+
+    this.selection.setStart(endS);
+    this.selection.setEnd(null);
+
+    const duration = this.wave ? this.wave.getDuration() : 0;
+    this._refreshSelectionUi();
+    this._updateOverlay(duration);
+
+    this.addCutBtn.disabled = true;
+    this._renderCuts();
   }
 
-  _segmentsFromMarkers() {
-    if (!this.wave) return [];
-    const duration = this.wave.getDuration();
-    const points = [0, ...this.markers, duration].filter((x) => Number.isFinite(x));
-    const segments = [];
-
-    for (let i = 0; i < points.length - 1; i += 1) {
-      const start = points[i];
-      const end = points[i + 1];
-      if (end - start < 0.2) continue;
-
-      segments.push({
-        start_s: start,
-        end_s: end,
-        filename: `segment_${String(i + 1).padStart(2, "0")}.mp3`,
-      });
-    }
-    return segments;
-  }
-
-  _renderSegments() {
-    const segments = this._segmentsFromMarkers();
+  _renderCuts() {
     this.segmentsDiv.innerHTML = "";
 
-    segments.forEach((seg, idx) => {
+    this.cuts.forEach((cut, idx) => {
       const div = document.createElement("div");
       div.className = "segment";
 
       const label = document.createElement("div");
-      label.textContent = `${TimeUtils.toClock(seg.start_s)} → ${TimeUtils.toClock(seg.end_s)}`;
+      label.textContent = `${TimeUtils.toClock(cut.start_s)} → ${TimeUtils.toClock(cut.end_s)}`;
 
       const input = document.createElement("input");
       input.type = "text";
-      input.value = seg.filename;
+      input.value = cut.filename;
       input.addEventListener("input", (e) => {
-        segments[idx].filename = e.target.value;
+        this.cuts[idx].filename = e.target.value;
       });
 
       const jumpBtn = document.createElement("button");
       jumpBtn.textContent = "Jump";
       jumpBtn.addEventListener("click", () => {
         if (!this.wave) return;
-        this.wave.setTime(seg.start_s);
+        this.wave.setTime(cut.start_s);
       });
 
       div.appendChild(label);
@@ -185,23 +327,20 @@ class CutterApp {
       div.appendChild(jumpBtn);
       this.segmentsDiv.appendChild(div);
     });
-
-    this._currentSegments = segments;
   }
 
   async _export() {
     if (!this.projectId) return;
-    const segments = this._currentSegments || [];
-    if (segments.length === 0) {
-      this._log("No segments to export (add markers).");
+    if (this.cuts.length === 0) {
+      this._log("No cuts to export.");
       return;
     }
 
     const payload = {
-      segments: segments.map((s) => ({
-        start_s: s.start_s,
-        end_s: s.end_s,
-        filename: s.filename,
+      segments: this.cuts.map((c) => ({
+        start_s: c.start_s,
+        end_s: c.end_s,
+        filename: c.filename,
       })),
       bitrate_kbps: Number(this.bitrate.value),
     };

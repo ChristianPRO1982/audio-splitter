@@ -71,3 +71,34 @@ pre {
   padding: 12px;
   overflow-x: auto;
 }
+
+#waveWrap {
+  position: relative;
+}
+
+#overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.marker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: currentColor;
+  opacity: 0.9;
+}
+
+#markerStart {
+  color: #38bdf8;
+}
+
+#markerEnd {
+  color: #f472b6;
+}
+
+.hidden {
+  display: none;
+}

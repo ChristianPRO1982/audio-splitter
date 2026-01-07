@@ -20,10 +20,21 @@
 
       <section class="card">
         <h2>2) Waveform + écoute</h2>
+        <div id="waveWrap">
         <div id="waveform"></div>
+          <div id="overlay">
+            <div id="markerStart" class="marker hidden"></div>
+            <div id="markerEnd" class="marker hidden"></div>
+          </div>
+        </div>
         <div class="row">
           <button id="playBtn">Play/Pause</button>
-          <button id="addMarkerBtn">Add marker</button>
+          <div class="row">
+            <button id="playBtn">Play/Pause</button>
+            <button id="addCutBtn" disabled>Add cut</button>
+            <span class="muted" id="selectionInfo">Selection: --:-- → --:--</span>
+            <span class="muted" id="timeInfo">--:--</span>
+          </div>
           <span class="muted" id="timeInfo">--:--</span>
         </div>
       </section>
