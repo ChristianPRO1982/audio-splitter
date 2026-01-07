@@ -4,53 +4,64 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>MP3 Cutter</title>
+
     <link rel="stylesheet" href="/assets/styles.css" />
     <script src="https://unpkg.com/wavesurfer.js@7"></script>
   </head>
+
   <body>
     <main class="container">
-      <h1>MP3 Cutter (MVP)</h1>
+      <header class="page-header">
+        <h1>MP3 Cutter (MVP)</h1>
+      </header>
 
-      <section class="card">
-        <h2>1) Upload</h2>
-        <input id="fileInput" type="file" accept="audio/*" />
-        <button id="uploadBtn">Upload</button>
-        <div class="muted" id="projectInfo"></div>
+      <section class="card" aria-labelledby="upload-title">
+        <h2 id="upload-title">1) Upload</h2>
+        <div class="row">
+          <input id="fileInput" type="file" accept="audio/*" />
+          <button id="uploadBtn" type="button">Upload</button>
+          <span class="muted" id="projectInfo"></span>
+        </div>
       </section>
 
-      <section class="card">
-        <h2>2) Waveform + écoute</h2>
+      <section class="card" aria-labelledby="wave-title">
+        <h2 id="wave-title">2) Waveform + écoute</h2>
 
         <div id="waveWrap">
-          <div id="waveform"></div>
-          <div id="overlay">
+          <div id="waveform" aria-label="Waveform"></div>
+
+          <div id="overlay" aria-hidden="true">
             <div id="markerStart" class="marker hidden"></div>
             <div id="markerEnd" class="marker hidden"></div>
           </div>
         </div>
 
-        <div class="row">
-          <button id="playBtn">Play/Pause</button>
-          <button id="markNowBtn" disabled>Mark now</button>
+        <div class="row" aria-label="Controls">
+          <button id="playBtn" type="button">Play/Pause</button>
+          <button id="markNowBtn" type="button" disabled>Mark now</button>
 
-          <button id="resetSelectionBtn" disabled>Reset selection</button>
-          <button id="undoCutBtn" disabled>Undo last cut</button>
+          <button id="resetSelectionBtn" type="button" disabled>Reset selection</button>
+          <button id="undoCutBtn" type="button" disabled>Undo last cut</button>
 
-          <button id="addCutBtn" disabled>Add cut</button>
+          <button id="addCutBtn" type="button" disabled>Add cut</button>
 
           <span class="muted" id="selectionInfo">Selection: --:-- → --:--</span>
           <span class="muted" id="timeInfo">--:--</span>
         </div>
       </section>
 
-      <section class="card">
-        <h2>3) Segments</h2>
+      <section class="card" aria-labelledby="segments-title">
+        <h2 id="segments-title">3) Segments</h2>
+
         <p class="muted">
           Logique MVP: tu définis une sélection (start/end) puis tu l’ajoutes comme découpe (tu peux renommer).
         </p>
-        <div id="segments"></div>
+
+        <div id="segments" aria-label="Cuts list"></div>
+
         <div class="row">
-          <label>Bitrate
+          <label for="bitrate">
+            Bitrate
             <select id="bitrate">
               <option value="128">128</option>
               <option value="192" selected>192</option>
@@ -59,9 +70,11 @@
             </select>
             kbps
           </label>
-          <button id="exportBtn">Export MP3</button>
+
+          <button id="exportBtn" type="button">Export MP3</button>
         </div>
-        <pre id="exportLog"></pre>
+
+        <pre id="exportLog" aria-label="Export log"></pre>
       </section>
     </main>
 
