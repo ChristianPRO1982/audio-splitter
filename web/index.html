@@ -20,21 +20,19 @@
 
       <section class="card">
         <h2>2) Waveform + écoute</h2>
+
         <div id="waveWrap">
-        <div id="waveform"></div>
+          <div id="waveform"></div>
           <div id="overlay">
             <div id="markerStart" class="marker hidden"></div>
             <div id="markerEnd" class="marker hidden"></div>
           </div>
         </div>
+
         <div class="row">
           <button id="playBtn">Play/Pause</button>
-          <div class="row">
-            <button id="playBtn">Play/Pause</button>
-            <button id="addCutBtn" disabled>Add cut</button>
-            <span class="muted" id="selectionInfo">Selection: --:-- → --:--</span>
-            <span class="muted" id="timeInfo">--:--</span>
-          </div>
+          <button id="addCutBtn" disabled>Add cut</button>
+          <span class="muted" id="selectionInfo">Selection: --:-- → --:--</span>
           <span class="muted" id="timeInfo">--:--</span>
         </div>
       </section>
@@ -42,7 +40,7 @@
       <section class="card">
         <h2>3) Segments</h2>
         <p class="muted">
-          Logique MVP: un segment = entre marker i et marker i+1 (tu peux renommer).
+          Logique MVP: tu définis une sélection (start/end) puis tu l’ajoutes comme découpe (tu peux renommer).
         </p>
         <div id="segments"></div>
         <div class="row">
