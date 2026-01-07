@@ -1,9 +1,13 @@
+from pathlib import Path
+
 import streamlit as st
 
 from app.core.audio_metadata import AudioMetadata
 from app.core.ffprobe_client import FfprobeClient, FfprobeError
 from app.core.file_storage import TempFileStorage
 from app.core.file_validation import FileValidator
+from app.core.waveform_service import WaveformError, WaveformService, WaveformEnvelope
+from app.ui.markers_view import MarkersView
 
 
 class FileUploader:
@@ -14,11 +18,15 @@ class FileUploader:
         storage: TempFileStorage,
         validator: FileValidator,
         ffprobe: FfprobeClient,
+        waveform: WaveformService,
+        markers_view: MarkersView,
     ) -> None:
-        """Initialize uploader with storage, validation, and ffprobe."""
+        """Initialize uploader with dependencies."""
         self._storage = storage
         self._validator = validator
         self._ffprobe = ffprobe
+        self._waveform = waveform
+        self._markers_view = markers_view
 
     def render(self) -> None:
         """Render file uploader component."""
@@ -45,15 +53,22 @@ class FileUploader:
         if metadata is None:
             return
 
-        self._render_success(uploaded_file.name, file_path, metadata)
+        self._render_summary(uploaded_file.name, file_path, metadata)
+        envelope = self._build_envelope_cached(file_path, metadata.duration_seconds)
+        if envelope is None:
+            return
+
+        self._markers_view.render(envelope)
 
     def _render_clear_temp(self) -> None:
         """Render a button to clear temporary files."""
         if st.button("Clear temp files"):
             self._storage.clear()
+            st.session_state.pop("markers", None)
+            st.session_state.pop("markers_editor", None)
             st.success("Temporary files cleared")
 
-    def _save_and_validate(self, uploaded_file) -> object | None:
+    def _save_and_validate(self, uploaded_file) -> Path | None:
         """Save upload and validate extension and size."""
         file_path = self._storage.save(
             filename=uploaded_file.name,
@@ -72,7 +87,7 @@ class FileUploader:
 
         return file_path
 
-    def _read_metadata(self, file_path) -> AudioMetadata | None:
+    def _read_metadata(self, file_path: Path) -> AudioMetadata | None:
         """Read metadata using ffprobe and handle errors."""
         try:
             return self._ffprobe.read_metadata(file_path)
@@ -80,7 +95,7 @@ class FileUploader:
             st.error(str(exc))
             return None
 
-    def _render_success(self, original_name: str, file_path, metadata: AudioMetadata) -> None:
+    def _render_summary(self, original_name: str, file_path: Path, metadata: AudioMetadata) -> None:
         """Render upload + metadata summary."""
         st.success("File uploaded, validated, and inspected successfully")
 
@@ -104,3 +119,19 @@ class FileUploader:
                 "channels": metadata.channels,
             }
         )
+
+    def _build_envelope_cached(self, file_path: Path, duration_s: float) -> WaveformEnvelope | None:
+        """Build waveform envelope with caching."""
+        try:
+            return _cached_envelope(str(file_path), file_path.stat().st_mtime, duration_s)
+        except WaveformError as exc:
+            st.error(str(exc))
+            return None
+
+
+@st.cache_data(show_spinner=True)
+def _cached_envelope(file_path: str, mtime: float, duration_s: float) -> WaveformEnvelope:
+    """Compute and cache waveform envelope."""
+    _ = mtime
+    service = WaveformService()
+    return service.build_envelope(Path(file_path), duration_s=duration_s)

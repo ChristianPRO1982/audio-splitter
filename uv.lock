@@ -546,6 +546,19 @@ wheels = [
 ]
 
 [[package]]
+name = "plotly"
+version = "6.5.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "narwhals" },
+    { name = "packaging" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/94/05/1199e2a03ce6637960bc1e951ca0f928209a48cfceb57355806a88f214cf/plotly-6.5.0.tar.gz", hash = "sha256:d5d38224883fd38c1409bef7d6a8dc32b74348d39313f3c52ca998b8e447f5c8", size = 7013624, upload-time = "2025-11-17T18:39:24.523Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e7/c3/3031c931098de393393e1f93a38dc9ed6805d86bb801acc3cf2d5bd1e6b7/plotly-6.5.0-py3-none-any.whl", hash = "sha256:5ac851e100367735250206788a2b1325412aa4a4917a4fe3e6f0bc5aa6f3d90a", size = 9893174, upload-time = "2025-11-17T18:39:20.351Z" },
+]
+
+[[package]]
 name = "pluggy"
 version = "1.6.0"
 source = { registry = "https://pypi.org/simple" }
@@ -867,7 +880,10 @@ name = "streamlit-mp3cutter"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "numpy" },
+    { name = "plotly" },
     { name = "streamlit" },
+    { name = "streamlit-plotly-events" },
 ]
 
 [package.dev-dependencies]
@@ -876,10 +892,28 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "streamlit", specifier = ">=1.52.2" }]
+requires-dist = [
+    { name = "numpy", specifier = ">=2.4.0" },
+    { name = "plotly", specifier = ">=6.5.0" },
+    { name = "streamlit", specifier = ">=1.52.2" },
+    { name = "streamlit-plotly-events", specifier = ">=0.0.6" },
+]
 
 [package.metadata.requires-dev]
 dev = [{ name = "pytest", specifier = ">=9.0.2" }]
+
+[[package]]
+name = "streamlit-plotly-events"
+version = "0.0.6"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "plotly" },
+    { name = "streamlit" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/61/8c/e51c4867cc4d819f8452811199241d0edbcec73621768270ada66153f874/streamlit-plotly-events-0.0.6.tar.gz", hash = "sha256:1fe25dbf0e5d803aeb90253be04d7b395f5bcfdf3c654f96ff3c19424e7f9582", size = 4874598, upload-time = "2021-04-26T23:36:16.973Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a9/08/51dd5c822e27410f6452c3cfe61f7163fdeb40f4d285f2da6c2b9f88584d/streamlit_plotly_events-0.0.6-py3-none-any.whl", hash = "sha256:e63fbe3c6a0746fdfce20060fc45ba5cd97805505c332b27372dcbd02c2ede29", size = 14802161, upload-time = "2021-04-26T23:36:09.194Z" },
+]
 
 [[package]]
 name = "tenacity"
