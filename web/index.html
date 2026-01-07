@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MP3 Cutter</title>
+    <link rel="stylesheet" href="/assets/styles.css" />
+    <script src="https://unpkg.com/wavesurfer.js@7"></script>
+  </head>
+  <body>
+    <main class="container">
+      <h1>MP3 Cutter (MVP)</h1>
+
+      <section class="card">
+        <h2>1) Upload</h2>
+        <input id="fileInput" type="file" accept="audio/*" />
+        <button id="uploadBtn">Upload</button>
+        <div class="muted" id="projectInfo"></div>
+      </section>
+
+      <section class="card">
+        <h2>2) Waveform + écoute</h2>
+        <div id="waveform"></div>
+        <div class="row">
+          <button id="playBtn">Play/Pause</button>
+          <button id="addMarkerBtn">Add marker</button>
+          <span class="muted" id="timeInfo">--:--</span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>3) Segments</h2>
+        <p class="muted">
+          Logique MVP: un segment = entre marker i et marker i+1 (tu peux renommer).
+        </p>
+        <div id="segments"></div>
+        <div class="row">
+          <label>Bitrate
+            <select id="bitrate">
+              <option value="128">128</option>
+              <option value="192" selected>192</option>
+              <option value="256">256</option>
+              <option value="320">320</option>
+            </select>
+            kbps
+          </label>
+          <button id="exportBtn">Export MP3</button>
+        </div>
+        <pre id="exportLog"></pre>
+      </section>
+    </main>
+
+    <script src="/assets/app.js"></script>
+  </body>
+</html>
