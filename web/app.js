@@ -98,6 +98,9 @@ class CutterApp {
     this.projectInfo = document.getElementById("projectInfo");
 
     this.playBtn = document.getElementById("playBtn");
+    this.zoomOutBtn = document.getElementById("zoomOutBtn");
+    this.zoomInBtn = document.getElementById("zoomInBtn");
+    this.zoomResetBtn = document.getElementById("zoomResetBtn");
     this.markNowBtn = document.getElementById("markNowBtn");
     this.resetSelectionBtn = document.getElementById("resetSelectionBtn");
     this.undoCutBtn = document.getElementById("undoCutBtn");
@@ -114,6 +117,10 @@ class CutterApp {
     this.exportLog = document.getElementById("exportLog");
     this.bitrate = document.getElementById("bitrate");
 
+    this.zoomPxPerSec = null;
+    this.zoomStep = 1.25;
+    this.zoomMaxPxPerSec = 1200;
+
     this._bind();
     this._setUiDisabled(true);
     this._refreshSelectionUi();
@@ -122,6 +129,9 @@ class CutterApp {
   _bind() {
     this.uploadBtn.addEventListener("click", () => this._onUpload());
     this.playBtn.addEventListener("click", () => this._togglePlay());
+    this.zoomOutBtn.addEventListener("click", () => this._zoomOut());
+    this.zoomInBtn.addEventListener("click", () => this._zoomIn());
+    this.zoomResetBtn.addEventListener("click", () => this._resetZoom());
     this.markNowBtn.addEventListener("click", () => this._markNow());
     this.resetSelectionBtn.addEventListener("click", () => this._resetSelection());
     this.undoCutBtn.addEventListener("click", () => this._undoLastCut());
@@ -131,6 +141,9 @@ class CutterApp {
 
   _setUiDisabled(disabled) {
     this.playBtn.disabled = disabled;
+    this.zoomOutBtn.disabled = disabled;
+    this.zoomInBtn.disabled = disabled;
+    this.zoomResetBtn.disabled = disabled;
     this.markNowBtn.disabled = disabled;
     this.resetSelectionBtn.disabled = true;
     this.undoCutBtn.disabled = true;
@@ -185,6 +198,7 @@ class CutterApp {
     this.wave.on("ready", () => {
       this._setUiDisabled(false);
       this._updateOverlay(this.wave.getDuration());
+      this._resetZoom();
       this._log("Audio loaded. Click waveform to set selection, then Add cut.");
     });
   }
@@ -204,6 +218,46 @@ class CutterApp {
     if (!this.wave) return;
     const t = this.wave.getCurrentTime();
     this._applyMarkAtTime(t);
+  }
+
+  _getFitPxPerSec() {
+    if (!this.wave) return 1;
+    const duration = this.wave.getDuration();
+    const container = document.getElementById("waveform");
+    const width = container ? container.clientWidth : 0;
+    if (!Number.isFinite(duration) || duration <= 0 || width <= 0) return 1;
+    return Math.max(1, width / duration);
+  }
+
+  _applyZoom(pxPerSec) {
+    if (!this.wave) return;
+    const fit = this._getFitPxPerSec();
+    const clamped = Math.min(this.zoomMaxPxPerSec, Math.max(fit, pxPerSec));
+    this.zoomPxPerSec = clamped;
+    this.wave.zoom(clamped);
+  }
+
+  _zoomIn() {
+    if (!this.wave) return;
+    if (!Number.isFinite(this.zoomPxPerSec)) {
+      this._resetZoom();
+      return;
+    }
+    this._applyZoom(this.zoomPxPerSec * this.zoomStep);
+  }
+
+  _zoomOut() {
+    if (!this.wave) return;
+    if (!Number.isFinite(this.zoomPxPerSec)) {
+      this._resetZoom();
+      return;
+    }
+    this._applyZoom(this.zoomPxPerSec / this.zoomStep);
+  }
+
+  _resetZoom() {
+    if (!this.wave) return;
+    this._applyZoom(this._getFitPxPerSec());
   }
 
 
