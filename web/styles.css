@@ -1,0 +1,201 @@
+/* =========================
+   Base / Reset
+   ========================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: #0b0f17;
+  color: #e8eefc;
+  line-height: 1.4;
+}
+
+/* =========================
+   Layout
+   ========================= */
+
+.container {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.page-header {
+  margin-bottom: 24px;
+}
+
+.card {
+  background: #11182a;
+  border: 1px solid #22304d;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+/* =========================
+   Typography helpers
+   ========================= */
+
+.muted {
+  opacity: 0.8;
+  font-size: 0.95rem;
+}
+
+/* =========================
+   Rows / Flex helpers
+   ========================= */
+
+.row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+/* =========================
+   Buttons
+   ========================= */
+
+button {
+  appearance: none;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: #2b5cff;
+  color: #ffffff;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+button:hover:not(:disabled) {
+  background: #1f4cff;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button.danger {
+  background: #ef4444;
+}
+
+button.danger:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+/* =========================
+   Inputs
+   ========================= */
+
+input[type="file"] {
+  color: #e8eefc;
+}
+
+input[type="text"],
+select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #22304d;
+  background: #0b0f17;
+  color: #e8eefc;
+  font-size: 0.95rem;
+}
+
+input[type="text"]:focus,
+select:focus {
+  outline: none;
+  border-color: #2b5cff;
+}
+
+/* =========================
+   Waveform
+   ========================= */
+
+#waveWrap {
+  position: relative;
+  margin-top: 12px;
+}
+
+#waveform {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+#overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.marker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: currentColor;
+  opacity: 0.9;
+}
+
+#markerStart {
+  color: #38bdf8;
+}
+
+#markerEnd {
+  color: #f472b6;
+}
+
+.hidden {
+  display: none;
+}
+
+/* =========================
+   Segments list
+   ========================= */
+
+#segments {
+  margin-top: 12px;
+}
+
+.segment {
+  display: grid;
+  grid-template-columns: 140px 1fr auto;
+  gap: 10px;
+  align-items: start;
+  padding: 10px;
+  border: 1px solid #22304d;
+  border-radius: 10px;
+  margin-top: 10px;
+}
+
+.segment > .row {
+  align-self: start;
+}
+
+.segment button {
+  margin: 0;
+}
+
+/* =========================
+   Export log
+   ========================= */
+
+pre {
+  margin-top: 12px;
+  background: #0b0f17;
+  border: 1px solid #22304d;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 0.9rem;
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
