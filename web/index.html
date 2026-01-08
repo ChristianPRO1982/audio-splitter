@@ -25,7 +25,7 @@
       </section>
 
       <section class="card" aria-labelledby="wave-title">
-        <h2 id="wave-title">2) Waveform + écoute</h2>
+        <h2 id="wave-title">2) Waveform + playback</h2>
 
         <div id="waveWrap">
           <div id="waveform" aria-label="Waveform"></div>
@@ -59,10 +59,6 @@
       <section class="card" aria-labelledby="segments-title">
         <h2 id="segments-title">3) Segments</h2>
 
-        <p class="muted">
-          Logique MVP: tu définis une sélection (start/end) puis tu l’ajoutes comme découpe (tu peux renommer).
-        </p>
-
         <div id="segments" aria-label="Cuts list"></div>
 
         <div class="row">
@@ -70,9 +66,9 @@
             Bitrate
             <select id="bitrate">
               <option value="128">128</option>
-              <option value="192" selected>192</option>
+              <option value="192">192</option>
               <option value="256">256</option>
-              <option value="320">320</option>
+              <option value="320" selected>320</option>
             </select>
             kbps
           </label>
