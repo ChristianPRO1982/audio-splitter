@@ -6,8 +6,9 @@
 ![Docker](https://img.shields.io/badge/docker-ready-2496ED?style=for-the-badge)
 ![FFmpeg](https://img.shields.io/badge/ffmpeg-required-black?style=for-the-badge)
 
-[🇬🇧 ENGLISH - What is Audio Splitter?]()
-[🇫🇷 FRANCAIS - Qu’est-ce qu’Audio Splitter ?]()
+[🇬🇧 ENGLISH - What is Audio Splitter?](#-english)
+
+[🇫🇷 FRANCAIS - Qu’est-ce qu’Audio Splitter ?](#-francais)
 
 ## Screenshot
 ![Audio Splitter](https://github.com/ChristianPRO1982/audio-splitter/blob/dev/audio-splitter.png)
@@ -99,3 +100,32 @@ L’application prend en charge **plusieurs formats audio en entrée et en sorti
 
 Audio Splitter mise sur la **simplicité, le contrôle et la clarté**.  
 Vous choisissez où couper. L’outil fait le reste.
+
+## Run locally (uv)
+
+```bash
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+Then open: http://localhost:8000
+
+## Run with Docker Compose
+Minimal `docker-compose.yml` (single service)
+```bash
+services:
+  audio-splitter:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+```
+
+Start
+```bash
+mkdir -p data/projects data/uploads data/outputs
+docker compose up --build
+```
+Then open: http://localhost:8000
