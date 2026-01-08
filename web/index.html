@@ -19,7 +19,7 @@
         <h2 id="upload-title">1) Upload</h2>
         <div class="row">
           <input id="fileInput" type="file" accept="audio/*" />
-          <button id="uploadBtn" type="button">Upload</button>
+          <button id="uploadBtn" class="primary" type="button">Upload</button>
           <span class="muted" id="projectInfo"></span>
         </div>
       </section>
@@ -37,19 +37,19 @@
         </div>
 
         <div class="row" aria-label="Controls">
-          <button id="playBtn" type="button">Play/Pause</button>
+          <button id="playBtn" class="accent" type="button">Play/Pause</button>
           <div class="zoom-group" role="group" aria-label="Zoom controls">
             <span class="zoom-icon" aria-hidden="true">🔍</span>
-            <button id="zoomOutBtn" type="button" disabled aria-label="Zoom out">➖</button>
-            <button id="zoomInBtn" type="button" disabled aria-label="Zoom in">➕</button>
-            <button id="zoomResetBtn" type="button" disabled aria-label="Zoom reset">🏠</button>
+            <button id="zoomOutBtn" class="ghost" type="button" disabled aria-label="Zoom out">➖</button>
+            <button id="zoomInBtn" class="ghost" type="button" disabled aria-label="Zoom in">➕</button>
+            <button id="zoomResetBtn" class="ghost" type="button" disabled aria-label="Zoom reset">🏠</button>
           </div>
-          <button id="markNowBtn" type="button" disabled>Mark now</button>
+          <button id="markNowBtn" class="accent" type="button" disabled>Mark now</button>
 
           <button id="resetSelectionBtn" type="button" disabled>Reset selection</button>
           <button id="undoCutBtn" type="button" disabled>Undo last cut</button>
 
-          <button id="addCutBtn" type="button" disabled>Add cut</button>
+          <button id="addCutBtn" class="primary" type="button" disabled>Add cut</button>
 
           <span class="muted" id="selectionInfo">Selection: --:-- → --:--</span>
           <span class="muted" id="timeInfo">--:--</span>
@@ -73,7 +73,7 @@
             kbps
           </label>
 
-          <button id="exportBtn" type="button">Export MP3</button>
+          <button id="exportBtn" class="primary" type="button">Export MP3</button>
         </div>
 
         <pre id="exportLog" aria-label="Export log"></pre>
