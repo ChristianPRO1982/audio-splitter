@@ -10,6 +10,8 @@
 
 [🇫🇷 FRANCAIS - Qu’est-ce qu’Audio Splitter ?](#-francais)
 
+[RUN APP](#run-locally-uv)
+
 ## Screenshot
 ![Audio Splitter](https://github.com/ChristianPRO1982/audio-splitter/blob/dev/audio-splitter.png)
 
